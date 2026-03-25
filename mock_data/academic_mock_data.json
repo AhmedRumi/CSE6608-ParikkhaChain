@@ -1,0 +1,705 @@
+{
+  "metadata": {
+    "num_courses": 5,
+    "num_students": 20,
+    "num_faculty": 10,
+    "error_rate": 0.2
+  },
+  "faculties": [
+    {
+      "faculty_id": "FAC001",
+      "name": "Robert Hopkins"
+    },
+    {
+      "faculty_id": "FAC002",
+      "name": "Andrea Ingram"
+    },
+    {
+      "faculty_id": "FAC003",
+      "name": "Scott Rogers"
+    },
+    {
+      "faculty_id": "FAC004",
+      "name": "Debra Brady"
+    },
+    {
+      "faculty_id": "FAC005",
+      "name": "Juan Strong"
+    },
+    {
+      "faculty_id": "FAC006",
+      "name": "Michelle Wilson"
+    },
+    {
+      "faculty_id": "FAC007",
+      "name": "Megan Meadows"
+    },
+    {
+      "faculty_id": "FAC008",
+      "name": "Daniel Smith"
+    },
+    {
+      "faculty_id": "FAC009",
+      "name": "Abigail Nguyen"
+    },
+    {
+      "faculty_id": "FAC010",
+      "name": "Kayla Montgomery DDS"
+    }
+  ],
+  "students": [
+    {
+      "student_id": "STU0001",
+      "name": "Victor Lee"
+    },
+    {
+      "student_id": "STU0002",
+      "name": "Matthew Black"
+    },
+    {
+      "student_id": "STU0003",
+      "name": "Chad Deleon"
+    },
+    {
+      "student_id": "STU0004",
+      "name": "Jennifer Huff"
+    },
+    {
+      "student_id": "STU0005",
+      "name": "Robert Ball"
+    },
+    {
+      "student_id": "STU0006",
+      "name": "Marilyn Yates"
+    },
+    {
+      "student_id": "STU0007",
+      "name": "Nicole Green"
+    },
+    {
+      "student_id": "STU0008",
+      "name": "Nicholas Macias"
+    },
+    {
+      "student_id": "STU0009",
+      "name": "Albert Hall"
+    },
+    {
+      "student_id": "STU0010",
+      "name": "Teresa Smith"
+    },
+    {
+      "student_id": "STU0011",
+      "name": "Margaret James"
+    },
+    {
+      "student_id": "STU0012",
+      "name": "Sabrina Morris MD"
+    },
+    {
+      "student_id": "STU0013",
+      "name": "Mark Blake"
+    },
+    {
+      "student_id": "STU0014",
+      "name": "Veronica Brown"
+    },
+    {
+      "student_id": "STU0015",
+      "name": "Cassandra Gilbert"
+    },
+    {
+      "student_id": "STU0016",
+      "name": "Gary Brown"
+    },
+    {
+      "student_id": "STU0017",
+      "name": "Joshua Ward"
+    },
+    {
+      "student_id": "STU0018",
+      "name": "Jeff Giles"
+    },
+    {
+      "student_id": "STU0019",
+      "name": "Michael Miles"
+    },
+    {
+      "student_id": "STU0020",
+      "name": "Donna Robbins"
+    }
+  ],
+  "courses": [
+    {
+      "course_id": "CSE001",
+      "course_name": "CSE001",
+      "teachers": [
+        "FAC005",
+        "FAC001"
+      ],
+      "scrutinizer": "FAC002",
+      "enrollments": [
+        {
+          "student_id": "STU0017",
+          "teacher_marks": {
+            "FAC005": 5.09,
+            "FAC001": 44.15
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC002",
+            "mark": 49.24,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0005",
+          "teacher_marks": {
+            "FAC005": 4.66,
+            "FAC001": 11.74
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC002",
+            "mark": 16.4,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0002",
+          "teacher_marks": {
+            "FAC005": 35.0,
+            "FAC001": 48.23
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC002",
+            "mark": 83.23,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0019",
+          "teacher_marks": {
+            "FAC005": 11.12,
+            "FAC001": 28.01
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC002",
+            "mark": 51.4,
+            "is_error": true
+          }
+        },
+        {
+          "student_id": "STU0012",
+          "teacher_marks": {
+            "FAC005": 9.43,
+            "FAC001": 34.31
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC002",
+            "mark": 43.74,
+            "is_error": false
+          }
+        }
+      ]
+    },
+    {
+      "course_id": "CSE002",
+      "course_name": "CSE002",
+      "teachers": [
+        "FAC006",
+        "FAC007"
+      ],
+      "scrutinizer": "FAC008",
+      "enrollments": [
+        {
+          "student_id": "STU0019",
+          "teacher_marks": {
+            "FAC006": 40.41,
+            "FAC007": 5.05
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC008",
+            "mark": 45.46,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0020",
+          "teacher_marks": {
+            "FAC006": 14.73,
+            "FAC007": 18.25
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC008",
+            "mark": 32.98,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0017",
+          "teacher_marks": {
+            "FAC006": 7.64,
+            "FAC007": 48.57
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC008",
+            "mark": 56.21,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0009",
+          "teacher_marks": {
+            "FAC006": 24.87,
+            "FAC007": 49.44
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC008",
+            "mark": 74.31,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0003",
+          "teacher_marks": {
+            "FAC006": 42.51,
+            "FAC007": 32.51
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC008",
+            "mark": 75.02,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0001",
+          "teacher_marks": {
+            "FAC006": 7.79,
+            "FAC007": 9.52
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC008",
+            "mark": 17.31,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0015",
+          "teacher_marks": {
+            "FAC006": 39.48,
+            "FAC007": 7.19
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC008",
+            "mark": 46.67,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0018",
+          "teacher_marks": {
+            "FAC006": 10.29,
+            "FAC007": 43.88
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC008",
+            "mark": 54.17,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0004",
+          "teacher_marks": {
+            "FAC006": 13.01,
+            "FAC007": 46.77
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC008",
+            "mark": 59.78,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0011",
+          "teacher_marks": {
+            "FAC006": 40.61,
+            "FAC007": 6.4
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC008",
+            "mark": 47.01,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0006",
+          "teacher_marks": {
+            "FAC006": 7.91,
+            "FAC007": 33.08
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC008",
+            "mark": 40.99,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0005",
+          "teacher_marks": {
+            "FAC006": 34.44,
+            "FAC007": 26.21
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC008",
+            "mark": 60.65,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0012",
+          "teacher_marks": {
+            "FAC006": 49.35,
+            "FAC007": 22.69
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC008",
+            "mark": 72.04,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0013",
+          "teacher_marks": {
+            "FAC006": 5.37,
+            "FAC007": 30.7
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC008",
+            "mark": 36.07,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0014",
+          "teacher_marks": {
+            "FAC006": 6.79,
+            "FAC007": 18.1
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC008",
+            "mark": 43.75,
+            "is_error": true
+          }
+        }
+      ]
+    },
+    {
+      "course_id": "CSE003",
+      "course_name": "CSE003",
+      "teachers": [
+        "FAC009",
+        "FAC010"
+      ],
+      "scrutinizer": "FAC006",
+      "enrollments": [
+        {
+          "student_id": "STU0003",
+          "teacher_marks": {
+            "FAC009": 22.34,
+            "FAC010": 22.92
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC006",
+            "mark": 45.26,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0010",
+          "teacher_marks": {
+            "FAC009": 40.34,
+            "FAC010": 4.78
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC006",
+            "mark": 45.12,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0006",
+          "teacher_marks": {
+            "FAC009": 47.95,
+            "FAC010": 35.58
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC006",
+            "mark": 83.53,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0008",
+          "teacher_marks": {
+            "FAC009": 19.28,
+            "FAC010": 37.98
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC006",
+            "mark": 57.26,
+            "is_error": false
+          }
+        }
+      ]
+    },
+    {
+      "course_id": "CSE004",
+      "course_name": "CSE004",
+      "teachers": [
+        "FAC003",
+        "FAC007"
+      ],
+      "scrutinizer": "FAC004",
+      "enrollments": [
+        {
+          "student_id": "STU0005",
+          "teacher_marks": {
+            "FAC003": 36.1,
+            "FAC007": 36.25
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC004",
+            "mark": 72.35,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0004",
+          "teacher_marks": {
+            "FAC003": 24.14,
+            "FAC007": 17.28
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC004",
+            "mark": 41.42,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0017",
+          "teacher_marks": {
+            "FAC003": 48.0,
+            "FAC007": 41.89
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC004",
+            "mark": 71.79,
+            "is_error": true
+          }
+        },
+        {
+          "student_id": "STU0009",
+          "teacher_marks": {
+            "FAC003": 49.97,
+            "FAC007": 34.8
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC004",
+            "mark": 84.77,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0007",
+          "teacher_marks": {
+            "FAC003": 47.07,
+            "FAC007": 45.28
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC004",
+            "mark": 92.35,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0013",
+          "teacher_marks": {
+            "FAC003": 33.03,
+            "FAC007": 37.78
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC004",
+            "mark": 70.81,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0002",
+          "teacher_marks": {
+            "FAC003": 0.86,
+            "FAC007": 12.93
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC004",
+            "mark": 13.79,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0014",
+          "teacher_marks": {
+            "FAC003": 23.76,
+            "FAC007": 31.34
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC004",
+            "mark": 55.1,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0001",
+          "teacher_marks": {
+            "FAC003": 7.62,
+            "FAC007": 1.94
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC004",
+            "mark": 9.56,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0019",
+          "teacher_marks": {
+            "FAC003": 42.71,
+            "FAC007": 1.2
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC004",
+            "mark": 43.91,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0010",
+          "teacher_marks": {
+            "FAC003": 2.47,
+            "FAC007": 22.15
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC004",
+            "mark": 46.02,
+            "is_error": true
+          }
+        },
+        {
+          "student_id": "STU0020",
+          "teacher_marks": {
+            "FAC003": 23.27,
+            "FAC007": 7.52
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC004",
+            "mark": 30.79,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0018",
+          "teacher_marks": {
+            "FAC003": 7.67,
+            "FAC007": 39.49
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC004",
+            "mark": 47.16,
+            "is_error": false
+          }
+        }
+      ]
+    },
+    {
+      "course_id": "CSE005",
+      "course_name": "CSE005",
+      "teachers": [
+        "FAC003",
+        "FAC009"
+      ],
+      "scrutinizer": "FAC002",
+      "enrollments": [
+        {
+          "student_id": "STU0004",
+          "teacher_marks": {
+            "FAC003": 3.43,
+            "FAC009": 27.86
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC002",
+            "mark": 31.29,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0008",
+          "teacher_marks": {
+            "FAC003": 22.72,
+            "FAC009": 15.28
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC002",
+            "mark": 38.0,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0010",
+          "teacher_marks": {
+            "FAC003": 3.68,
+            "FAC009": 35.75
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC002",
+            "mark": 39.43,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0012",
+          "teacher_marks": {
+            "FAC003": 12.65,
+            "FAC009": 44.72
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC002",
+            "mark": 57.37,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0005",
+          "teacher_marks": {
+            "FAC003": 13.35,
+            "FAC009": 30.06
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC002",
+            "mark": 43.41,
+            "is_error": false
+          }
+        },
+        {
+          "student_id": "STU0020",
+          "teacher_marks": {
+            "FAC003": 36.12,
+            "FAC009": 39.15
+          },
+          "scrutinizer_mark": {
+            "faculty_id": "FAC002",
+            "mark": 75.27,
+            "is_error": false
+          }
+        }
+      ]
+    }
+  ]
+}

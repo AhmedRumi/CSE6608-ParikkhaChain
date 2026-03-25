@@ -57,7 +57,42 @@ contract HashRegistry {
         require(scripts[scriptId].exists, "Script does not exist");
         _;
     }
-    
+    function getMyIdentity(address student)
+    public
+    view
+    returns (
+        address studentAddress,
+        string memory studentName,
+        string memory studentId,
+        string memory courseCode
+    )
+{
+    // Only the student themselves or admin can call this
+    require(
+        msg.sender == student ||
+        rbacContract.hasRole(msg.sender, RBAC.Role.ADMIN),
+        "Not authorized"
+    );
+    require(
+        rbacContract.hasRole(student, RBAC.Role.STUDENT),
+        "Not a student"
+    );
+
+    // Get the student's first script to read their identity
+    // (name and ID are the same across all scripts for the same student)
+    string[] memory ownScripts = studentScripts[student];
+    require(ownScripts.length > 0, "No scripts found");
+
+    // Read identity from the first script
+    ScriptRecord storage record = scripts[ownScripts[0]];
+    return (
+        record.studentAddress,
+        record.studentName,
+        record.studentId,
+        record.courseCode
+    );
+}
+
     // Generate anonymous script ID
     function generateScriptId(uint256 examId) 
         internal 
