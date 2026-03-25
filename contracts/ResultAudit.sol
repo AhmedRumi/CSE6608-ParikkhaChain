@@ -18,36 +18,25 @@ contract ResultAudit {
         FINALIZED        // 4
     }
 
-    // Split into two structs to avoid stack-too-deep
-    // Packing: address(20) + bool + bool = 22 bytes → fits in one 32-byte slot
-    struct ExaminerRecord {
-        address examiner1Address;   // 20 bytes ─┐ packed into
-        bool    examiner1Submitted; //  1 byte   ─┤ one slot
-        bool    examiner2Submitted; //  1 byte   ─┘ (22 bytes total)
-        address examiner2Address;   // 20 bytes (own slot)
-        uint128 examiner1Marks;     //  16 bytes ─┐ packed into
-        uint128 examiner2Marks;     //  16 bytes ─┘ one slot
-    }
-
     struct MarksRecord {
-        // scriptId removed — it is already the mapping key
-        uint64      examId;        //  8 bytes ─┐
-        uint64      submittedAt;   //  8 bytes  │ packed into
-        uint32      marksObtained; //  4 bytes  │ one 32-byte slot
-        uint32      totalMarks;    //  4 bytes  │
-        GradeStatus status;        //  1 byte   │ (GradeStatus is uint8)
-        bool        exists;        //  1 byte  ─┘
-        // totalMarks is always 100 but kept for interface compatibility
+        string scriptId;
+        uint256 examId;
+        uint256 marksObtained;
+        uint256 totalMarks;
+        address submittedBy;
+        uint256 submittedAt;
+        GradeStatus status;
+        bool exists;
     }
 
     struct AuditEntry {
-        // scriptId removed — it is already the mapping key, no need to store again
-        uint32  oldMarks;    //  4 bytes ─┐ packed: 4+4+8+20 = 36 bytes
-        uint32  newMarks;    //  4 bytes  │ (2 slots instead of 7)
-        uint64  timestamp;   //  8 bytes  │
-        address changedBy;   // 20 bytes ─┘
-        string  reason;      // dynamic (separate slot)
-        string  changeType;  // dynamic (separate slot — short: "EXAMINER1" etc.)
+        string scriptId;
+        uint256 oldMarks;
+        uint256 newMarks;
+        address changedBy;
+        string reason;
+        uint256 timestamp;
+        string changeType;
     }
 
     // ── New: per-script result view struct (returned to caller) ──────────
@@ -61,11 +50,10 @@ contract ResultAudit {
         bool    hasScrutiny;
     }
 
-    mapping(string => MarksRecord)   public marks;
-    mapping(string => ExaminerRecord) public examinerData;
-    mapping(string => AuditEntry[])  public auditTrail;
-    mapping(uint256 => bool)         public examFinalized;
-    mapping(uint256 => string[])     public examResults;
+    mapping(string => MarksRecord) public marks;
+    mapping(string => AuditEntry[]) public auditTrail;
+    mapping(uint256 => bool) public examFinalized;
+    mapping(uint256 => string[]) public examResults;
 
     constructor(
         address rbacAddress,
@@ -99,7 +87,7 @@ contract ResultAudit {
     modifier onlyAdmin() {
         require(
             rbacContract.hasRole(msg.sender, RBAC.Role.ADMIN),
-            "Not admin"
+            "Only admin can perform this action"
         );
         _;
     }
@@ -108,7 +96,7 @@ contract ResultAudit {
         uint256 examId = hashContract.getExamId(scriptId);
         require(
             rbacContract.isAssignedExaminer(msg.sender, examId),
-            "Not assigned"
+            "Not assigned as examiner for this exam"
         );
         _;
     }
@@ -117,7 +105,7 @@ contract ResultAudit {
         uint256 examId = hashContract.getExamId(scriptId);
         require(
             rbacContract.isAssignedScrutinizer(msg.sender, examId),
-            "Not assigned"
+            "Not assigned as scrutinizer for this exam"
         );
         _;
     }
@@ -126,41 +114,31 @@ contract ResultAudit {
         require(
             rbacContract.hasRole(msg.sender, RBAC.Role.ADMIN) ||
             msg.sender == student,
-            "Unauthorized"
+            "Only admin or the student themselves can view this result"
         );
         _;
     }
 
     modifier examNotFinalized(uint256 examId) {
-        require(!examFinalized[examId], "Finalized");
+        require(!examFinalized[examId], "Exam results already finalized");
         _;
     }
 
     modifier scriptExists(string memory scriptId) {
         require(
             hashContract.scriptExistsPublic(scriptId),
-            "No script"
+            "Script does not exist"
         );
         _;
     }
 
     // ─── Core marking functions ───────────────────────────────────────────
 
-    /**
-     * @notice Examiner submits their portion of marks (out of 50).
-     *         Two examiners must both submit before the script is SUBMITTED.
-     *         First examiner to call registers as examiner1, second as examiner2.
-     *         Total marks = examiner1Marks + examiner2Marks (out of 100).
-     *
-     * Remix: ResultAudit → submitMarks(scriptId, 42)
-     *        Call from examiner1 wallet, then examiner2 wallet.
-     */
     function submitMarks(
         string memory scriptId,
-        uint256 marksOutOf50
+        uint256 marksObtained,
+        uint256 totalMarks
     ) public onlyAssignedExaminer(scriptId) scriptExists(scriptId) {
-
-        require(marksOutOf50 <= 50, "Max 50");
 
         (uint256 examId, , ) = hashContract.getAnonymousScriptDetails(scriptId);
 
@@ -168,116 +146,36 @@ contract ResultAudit {
         require(
             examState == ExamLifecycle.ExamState.EVALUATION ||
             examState == ExamLifecycle.ExamState.SCRUTINY,
-            "Wrong state"
+            "Exam not in correct state for marking"
         );
+        require(!marks[scriptId].exists, "Marks already submitted for this script");
+        require(marksObtained <= totalMarks, "Marks obtained cannot exceed total marks");
+        require(totalMarks > 0, "Total marks must be greater than zero");
 
-        MarksRecord storage rec = marks[scriptId];
+        marks[scriptId] = MarksRecord({
+            scriptId:      scriptId,
+            examId:        examId,
+            marksObtained: marksObtained,
+            totalMarks:    totalMarks,
+            submittedBy:   msg.sender,
+            submittedAt:   block.timestamp,
+            status:        GradeStatus.SUBMITTED,
+            exists:        true
+        });
 
-        ExaminerRecord storage er = examinerData[scriptId];
+        examResults[examId].push(scriptId);
 
-        if (!rec.exists) {
-            // First examiner — initialise both records
-            marks[scriptId] = MarksRecord({
-                examId:        uint64(examId),
-                submittedAt:   0,
-                marksObtained: 0,
-                totalMarks:    100,
-                status:        GradeStatus.NOT_SUBMITTED,
-                exists:        true
-            });
-            examinerData[scriptId] = ExaminerRecord({
-                examiner1Marks:     uint128(marksOutOf50),
-                examiner2Marks:     uint128(0),
-                examiner1Address:   msg.sender,
-                examiner2Address:   address(0),
-                examiner1Submitted: true,
-                examiner2Submitted: false
-            });
+        auditTrail[scriptId].push(AuditEntry({
+            scriptId:   scriptId,
+            oldMarks:   0,
+            newMarks:   marksObtained,
+            changedBy:  msg.sender,
+            reason:     "Initial marking",
+            timestamp:  block.timestamp,
+            changeType: "INITIAL"
+        }));
 
-            examResults[examId].push(scriptId);
-
-            auditTrail[scriptId].push(AuditEntry({
-                oldMarks:   0,
-                newMarks:   uint32(marksOutOf50),
-                changedBy:  msg.sender,
-                reason:     "Examiner 1 submitted",
-                timestamp:  uint64(block.timestamp),
-                changeType: "EXAMINER1"
-            }));
-
-            emit MarksSubmitted(scriptId, examId, marksOutOf50, msg.sender);
-
-        } else {
-            // Second examiner — must be a different address
-            require(
-                msg.sender != er.examiner1Address,
-                "Duplicate examiner"
-            );
-            require(!er.examiner2Submitted, "Already submitted");
-
-            er.examiner2Marks     = uint128(marksOutOf50);
-            er.examiner2Address   = msg.sender;
-            er.examiner2Submitted = true;
-
-            uint32 combined       = uint32(er.examiner1Marks + uint128(marksOutOf50));
-            rec.marksObtained     = combined;
-            rec.submittedAt       = uint64(block.timestamp);
-            rec.status            = GradeStatus.SUBMITTED;
-
-            // oldMarks = ex1 individual, newMarks = ex2 individual (NOT combined)
-            // combined total = oldMarks + newMarks, readable in audit display
-            auditTrail[scriptId].push(AuditEntry({
-                oldMarks:   uint32(er.examiner1Marks),
-                newMarks:   uint32(marksOutOf50),
-                changedBy:  msg.sender,
-                reason:     "Examiner 2 submitted",
-                timestamp:  uint64(block.timestamp),
-                changeType: "EXAMINER2"
-            }));
-
-            emit MarksSubmitted(scriptId, examId, combined, msg.sender);
-        }
-    }
-
-    /**
-    /**
-     * @notice Get examiner 1 marking status.
-     * Remix: ResultAudit → getExaminer1Progress(scriptId)
-     */
-    function getExaminer1Progress(string memory scriptId)
-        public view
-        returns (
-            bool    submitted,
-            uint256 marksGiven,
-            address examinerAddr
-        )
-    {
-        ExaminerRecord storage er = examinerData[scriptId];
-        return (er.examiner1Submitted, uint256(er.examiner1Marks), er.examiner1Address);
-    }
-
-    /**
-     * @notice Get examiner 2 status + combined total.
-     * Remix: ResultAudit → getExaminer2Progress(scriptId)
-     */
-    function getExaminer2Progress(string memory scriptId)
-        public view
-        returns (
-            bool    submitted,
-            uint256 marksGiven,
-            address examinerAddr,
-            uint256 combinedTotal,
-            bool    bothSubmitted
-        )
-    {
-        ExaminerRecord storage er = examinerData[scriptId];
-        return (
-            er.examiner2Submitted,
-            uint256(er.examiner2Marks),
-            er.examiner2Address,
-            uint256(marks[scriptId].marksObtained),
-            er.examiner1Submitted && er.examiner2Submitted
-        );
+        emit MarksSubmitted(scriptId, examId, marksObtained, msg.sender);
     }
 
     function submitScrutiny(
@@ -286,15 +184,10 @@ contract ResultAudit {
         string memory reason
     ) public onlyAssignedScrutinizer(scriptId) scriptExists(scriptId) {
 
-        require(marks[scriptId].exists, "No marks record for this script");
-        require(
-            examinerData[scriptId].examiner1Submitted &&
-            examinerData[scriptId].examiner2Submitted,
-            "Awaiting both examiners"
-        );
+        require(marks[scriptId].exists, "No marks submitted for this script");
         require(
             marks[scriptId].status != GradeStatus.FINALIZED,
-            "Finalized"
+            "Cannot scrutinize finalized grades"
         );
 
         uint256 examId = marks[scriptId].examId;
@@ -303,19 +196,20 @@ contract ResultAudit {
             examState == ExamLifecycle.ExamState.SCRUTINY,
             "Exam not in scrutiny state"
         );
-        require(newMarks <= marks[scriptId].totalMarks, "Exceeds total");
-        require(bytes(reason).length > 0, "Need reason");
+        require(newMarks <= marks[scriptId].totalMarks, "New marks exceed total marks");
+        require(bytes(reason).length > 0, "Reason is required for scrutiny");
 
-        uint32 oldMarks = marks[scriptId].marksObtained;
-        marks[scriptId].marksObtained = uint32(newMarks);
+        uint256 oldMarks = marks[scriptId].marksObtained;
+        marks[scriptId].marksObtained = newMarks;
         marks[scriptId].status        = GradeStatus.SCRUTINIZED;
 
         auditTrail[scriptId].push(AuditEntry({
-            oldMarks:   uint32(oldMarks),
-            newMarks:   uint32(newMarks),
+            scriptId:   scriptId,
+            oldMarks:   oldMarks,
+            newMarks:   newMarks,
             changedBy:  msg.sender,
             reason:     reason,
-            timestamp:  uint64(block.timestamp),
+            timestamp:  block.timestamp,
             changeType: "SCRUTINY"
         }));
 
@@ -332,11 +226,11 @@ contract ResultAudit {
             examState == ExamLifecycle.ExamState.EVALUATION ||
             examState == ExamLifecycle.ExamState.SCRUTINY  ||
             examState == ExamLifecycle.ExamState.COMPLETED,
-            "Wrong state"
+            "Exam not ready for finalization"
         );
 
         string[] memory scriptIds = examResults[examId];
-        require(scriptIds.length > 0, "No results");
+        require(scriptIds.length > 0, "No results to finalize");
 
         for (uint256 i = 0; i < scriptIds.length; i++) {
             if (marks[scriptIds[i]].exists) {
@@ -365,7 +259,7 @@ contract ResultAudit {
         )
     {
         MarksRecord memory record = marks[scriptId];
-        return (uint256(record.marksObtained), uint256(record.totalMarks), record.status);
+        return (record.marksObtained, record.totalMarks, record.status);
     }
 
     /**
@@ -391,20 +285,20 @@ contract ResultAudit {
     {
         require(
             rbacContract.hasRole(student, RBAC.Role.STUDENT),
-            "Not student"
+            "Address is not a registered student"
         );
 
         string[] memory studentScripts = hashContract.getStudentScripts(student);
-        require(studentScripts.length > 0, "No scripts");
+        require(studentScripts.length > 0, "No scripts found for this student");
 
         for (uint256 i = 0; i < studentScripts.length; i++) {
             if (marks[studentScripts[i]].examId == examId &&
                 marks[studentScripts[i]].exists) {
                 MarksRecord memory record = marks[studentScripts[i]];
                 return (
-                    studentScripts[i],
-                    uint256(record.marksObtained),
-                    uint256(record.totalMarks),
+                    record.scriptId,
+                    record.marksObtained,
+                    record.totalMarks,
                     record.status
                 );
             }
@@ -413,44 +307,9 @@ contract ResultAudit {
         revert("No result found for this student in this exam");
     }
 
-    // Internal helper: fetch course code without adding stack depth
-    function _getCourseCode(uint256 examId) internal view returns (string memory) {
-        try examContract.getExamDetails(examId) returns (
-            string memory,
-            string memory courseCode,
-            uint256,
-            ExamLifecycle.ExamState,
-            address
-        ) {
-            return courseCode;
-        } catch {
-            return "N/A";
-        }
-    }
-
-    // Internal helper: fill one transcript slot (avoids stack-too-deep in caller)
-    function _fillSlot(
-        uint256 i,
-        string memory sid,
-        uint256[] memory examIds,
-        string[]  memory courseCodes,
-        uint256[] memory marksObtained,
-        uint256[] memory totalMarks,
-        GradeStatus[] memory statuses,
-        bool[]    memory hasScrutiny
-    ) internal view {
-        MarksRecord storage rec = marks[sid];
-        examIds[i]       = uint256(rec.examId);
-        marksObtained[i] = uint256(rec.marksObtained);
-        totalMarks[i]    = uint256(rec.totalMarks);
-        statuses[i]      = rec.status;
-        courseCodes[i]   = _getCourseCode(rec.examId);
-        hasScrutiny[i]   = auditTrail[sid].length > 1;
-    }
-
     /**
      * @notice Get ALL results for a student across every exam they sat.
-     *         Returns parallel arrays -- one entry per script/course.
+     *         Returns parallel arrays — one entry per script/course.
      *         Callable by the student themselves OR admin.
      *
      * @param student  Student wallet address.
@@ -467,54 +326,63 @@ contract ResultAudit {
         view
         onlyAdminOrSelf(student)
         returns (
-            string[]      memory scriptIds,
-            uint256[]     memory examIds,
-            string[]      memory courseCodes,
-            uint256[]     memory marksObtained,
-            uint256[]     memory totalMarks,
+            string[]  memory scriptIds,
+            uint256[] memory examIds,
+            string[]  memory courseCodes,
+            uint256[] memory marksObtained,
+            uint256[] memory totalMarks,
             GradeStatus[] memory statuses,
-            bool[]        memory hasScrutiny
+            bool[]    memory hasScrutiny
         )
     {
         require(
             rbacContract.hasRole(student, RBAC.Role.STUDENT),
-            "Not student"
+            "Address is not a registered student"
         );
 
         string[] memory studentScripts = hashContract.getStudentScripts(student);
         uint256 n = studentScripts.length;
-        require(n > 0, "No scripts");
+        require(n > 0, "No scripts found for this student");
 
-        scriptIds     = new string[](n);
-        examIds       = new uint256[](n);
-        courseCodes   = new string[](n);
-        marksObtained = new uint256[](n);
-        totalMarks    = new uint256[](n);
-        statuses      = new GradeStatus[](n);
-        hasScrutiny   = new bool[](n);
+        // Allocate return arrays
+        scriptIds      = new string[](n);
+        examIds        = new uint256[](n);
+        courseCodes    = new string[](n);
+        marksObtained  = new uint256[](n);
+        totalMarks     = new uint256[](n);
+        statuses       = new GradeStatus[](n);
+        hasScrutiny    = new bool[](n);
 
         for (uint256 i = 0; i < n; i++) {
             string memory sid = studentScripts[i];
             scriptIds[i] = sid;
 
-            // Always resolve examId and courseCode from HashRegistry
-            // so unsubmitted scripts still show correct exam info
-            uint256 eid = hashContract.getExamId(sid);
-            examIds[i]     = eid;
-            courseCodes[i] = _getCourseCode(eid);
-
             if (marks[sid].exists) {
-                // Marks submitted — fill all fields from marks record
-                MarksRecord storage rec = marks[sid];
+                MarksRecord memory rec = marks[sid];
+                examIds[i]       = rec.examId;
                 marksObtained[i] = rec.marksObtained;
                 totalMarks[i]    = rec.totalMarks;
                 statuses[i]      = rec.status;
-                hasScrutiny[i]   = auditTrail[sid].length > 1;
+
+                // Fetch course code from ExamLifecycle
+                try examContract.getExam(rec.examId) returns (
+                    uint256, string memory, string memory courseCode,
+                    uint256, ExamLifecycle.ExamState
+                ) {
+                    courseCodes[i] = courseCode;
+                } catch {
+                    courseCodes[i] = "N/A";
+                }
+
+                // Check if scrutiny happened (audit trail has > 1 entry)
+                hasScrutiny[i] = auditTrail[sid].length > 1;
             }
-            // If marks not submitted: marksObtained=0, totalMarks=0,
-            // status=NOT_SUBMITTED(0), hasScrutiny=false — default zero values
         }
+
+        return (scriptIds, examIds, courseCodes, marksObtained,
+                totalMarks, statuses, hasScrutiny);
     }
+
     /**
      * @notice Get the audit trail for a script.
      *         Admin only — reveals who marked and changed marks.
@@ -548,5 +416,4 @@ contract ResultAudit {
     function getExamResultCount(uint256 examId) public view returns (uint256) {
         return examResults[examId].length;
     }
-
 }

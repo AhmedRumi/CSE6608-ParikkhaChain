@@ -1,0 +1,676 @@
+[
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "examId",
+				"type": "uint256"
+			}
+		],
+		"name": "finalizeExamResults",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "rbacAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "examAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "hashAddress",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "string",
+				"name": "scriptId",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "oldMarks",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "newMarks",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "scrutinizer",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "reason",
+				"type": "string"
+			}
+		],
+		"name": "MarksScrutinized",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "string",
+				"name": "scriptId",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "examId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "marksValue",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "examiner",
+				"type": "address"
+			}
+		],
+		"name": "MarksSubmitted",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "examId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "totalScripts",
+				"type": "uint256"
+			}
+		],
+		"name": "ResultFinalized",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "scriptId",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "marksOutOf50",
+				"type": "uint256"
+			}
+		],
+		"name": "submitMarks",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "scriptId",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "newMarks",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "reason",
+				"type": "string"
+			}
+		],
+		"name": "submitScrutiny",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "auditTrail",
+		"outputs": [
+			{
+				"internalType": "uint32",
+				"name": "oldMarks",
+				"type": "uint32"
+			},
+			{
+				"internalType": "uint32",
+				"name": "newMarks",
+				"type": "uint32"
+			},
+			{
+				"internalType": "uint64",
+				"name": "timestamp",
+				"type": "uint64"
+			},
+			{
+				"internalType": "address",
+				"name": "changedBy",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "reason",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "changeType",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "examContract",
+		"outputs": [
+			{
+				"internalType": "contract ExamLifecycle",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "examFinalized",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"name": "examinerData",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "examiner1Address",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "examiner1Submitted",
+				"type": "bool"
+			},
+			{
+				"internalType": "bool",
+				"name": "examiner2Submitted",
+				"type": "bool"
+			},
+			{
+				"internalType": "address",
+				"name": "examiner2Address",
+				"type": "address"
+			},
+			{
+				"internalType": "uint128",
+				"name": "examiner1Marks",
+				"type": "uint128"
+			},
+			{
+				"internalType": "uint128",
+				"name": "examiner2Marks",
+				"type": "uint128"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "examResults",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "scriptId",
+				"type": "string"
+			}
+		],
+		"name": "getAuditTrail",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint32",
+						"name": "oldMarks",
+						"type": "uint32"
+					},
+					{
+						"internalType": "uint32",
+						"name": "newMarks",
+						"type": "uint32"
+					},
+					{
+						"internalType": "uint64",
+						"name": "timestamp",
+						"type": "uint64"
+					},
+					{
+						"internalType": "address",
+						"name": "changedBy",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "reason",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "changeType",
+						"type": "string"
+					}
+				],
+				"internalType": "struct ResultAudit.AuditEntry[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "scriptId",
+				"type": "string"
+			}
+		],
+		"name": "getExaminer1Progress",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "submitted",
+				"type": "bool"
+			},
+			{
+				"internalType": "uint256",
+				"name": "marksGiven",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "examinerAddr",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "scriptId",
+				"type": "string"
+			}
+		],
+		"name": "getExaminer2Progress",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "submitted",
+				"type": "bool"
+			},
+			{
+				"internalType": "uint256",
+				"name": "marksGiven",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "examinerAddr",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "combinedTotal",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "bothSubmitted",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "examId",
+				"type": "uint256"
+			}
+		],
+		"name": "getExamResultCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "examId",
+				"type": "uint256"
+			}
+		],
+		"name": "getExamResults",
+		"outputs": [
+			{
+				"internalType": "string[]",
+				"name": "",
+				"type": "string[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "student",
+				"type": "address"
+			}
+		],
+		"name": "getFullTranscript",
+		"outputs": [
+			{
+				"internalType": "string[]",
+				"name": "scriptIds",
+				"type": "string[]"
+			},
+			{
+				"internalType": "uint256[]",
+				"name": "examIds",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "string[]",
+				"name": "courseCodes",
+				"type": "string[]"
+			},
+			{
+				"internalType": "uint256[]",
+				"name": "marksObtained",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "uint256[]",
+				"name": "totalMarks",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "enum ResultAudit.GradeStatus[]",
+				"name": "statuses",
+				"type": "uint8[]"
+			},
+			{
+				"internalType": "bool[]",
+				"name": "hasScrutiny",
+				"type": "bool[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "scriptId",
+				"type": "string"
+			}
+		],
+		"name": "getMarks",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "marksObtained",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalMarks",
+				"type": "uint256"
+			},
+			{
+				"internalType": "enum ResultAudit.GradeStatus",
+				"name": "status",
+				"type": "uint8"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "examId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "student",
+				"type": "address"
+			}
+		],
+		"name": "getStudentExamResult",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "scriptId",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "marksObtained",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalMarks",
+				"type": "uint256"
+			},
+			{
+				"internalType": "enum ResultAudit.GradeStatus",
+				"name": "status",
+				"type": "uint8"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "hashContract",
+		"outputs": [
+			{
+				"internalType": "contract HashRegistry",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "examId",
+				"type": "uint256"
+			}
+		],
+		"name": "isExamFinalized",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"name": "marks",
+		"outputs": [
+			{
+				"internalType": "uint64",
+				"name": "examId",
+				"type": "uint64"
+			},
+			{
+				"internalType": "uint64",
+				"name": "submittedAt",
+				"type": "uint64"
+			},
+			{
+				"internalType": "uint32",
+				"name": "marksObtained",
+				"type": "uint32"
+			},
+			{
+				"internalType": "uint32",
+				"name": "totalMarks",
+				"type": "uint32"
+			},
+			{
+				"internalType": "enum ResultAudit.GradeStatus",
+				"name": "status",
+				"type": "uint8"
+			},
+			{
+				"internalType": "bool",
+				"name": "exists",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "rbacContract",
+		"outputs": [
+			{
+				"internalType": "contract RBAC",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+]
