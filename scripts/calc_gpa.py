@@ -43,8 +43,8 @@ def fetch_student_results_from_blockchain(student_address, exam_ids):
     for exam_id in exam_ids:
         try:
             # Get student's result from blockchain
-            # This calls: ResultAudit.getStudentResult(examId, studentAddress)
-            result = blockchain.get_contract("ResultAudit").functions.getStudentResult(
+            # This calls: ResultAudit.getStudentExamResult(examId, studentAddress)
+            result = blockchain.get_contract("ResultAudit").functions.getStudentExamResult(
                 exam_id,
                 student_address
             ).call({'from': student_address})
@@ -152,7 +152,7 @@ def demo_cgpa_calculation_from_mock_data():
     mock_data_file = Path(__file__).parent.parent / "mock_data" / "complete_mock_data.json"
     
     if not mock_data_file.exists():
-        print("⚠️  Mock data not found. Run generate_mock_data.py first!")
+        print("⚠️  Mock data not found. Run convert_mock_data.py first!")
         return
     
     with open(mock_data_file, 'r') as f:

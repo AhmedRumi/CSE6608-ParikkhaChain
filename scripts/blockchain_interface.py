@@ -227,8 +227,11 @@ class RBACInterface(BlockchainInterface):
     def has_role(self, address, role):
         """Check if address has a specific role"""
         contract = self.get_contract("RBAC")
+        # config.ROLES values are the Role ENUM values (ADMIN=1, EXAMINER=2,
+        # SCRUTINIZER=3, STUDENT=4) — pass them to hasRole(), NOT hasRoleBit()
+        # (hasRoleBit expects bitmask values: SCRUTINIZER=4, STUDENT=8)
         role_num = config.ROLES[role] if isinstance(role, str) else role
-        return contract.functions.hasRoleBit(address, role_num).call()
+        return contract.functions.hasRole(address, role_num).call()
 
 
 class ExamInterface(BlockchainInterface):
@@ -322,26 +325,79 @@ class HashRegistryInterface(BlockchainInterface):
 
 class ResultAuditInterface(BlockchainInterface):
     """Wrapper for ResultAudit contract interactions"""
-    
-    def submit_marks(self, script_id, marks_obtained, total_marks=50, from_account=None):
-        """Submit marks for a script"""
+
+    @staticmethod
+    def _section_arg(section):
+        """Accept 'A'/'B' or 1/2, return the uint8 section value."""
+        if isinstance(section, str):
+            section = section.upper()
+            if section not in config.SECTIONS:
+                raise ValueError(f"Invalid section: {section} (use 'A' or 'B')")
+            return config.SECTIONS[section]
+        if section not in (config.SECTIONS["A"], config.SECTIONS["B"]):
+            raise ValueError(f"Invalid section value: {section} (use 1 or 2)")
+        return section
+
+    def submit_marks(self, script_id, section, marks_obtained, from_account=None):
+        """Submit marks for a script section (out of 50)."""
         contract = self.get_contract("ResultAudit")
-        
-        print(f"\n📊 Submitting marks for {script_id}: {marks_obtained}/50")
-        
-        tx = contract.functions.submitMarks(script_id, marks_obtained)
+        sec = self._section_arg(section)
+        sec_name = config.get_section_name(sec)
+
+        print(f"\n📊 Submitting Section {sec_name} marks for {script_id}: {marks_obtained}/50")
+
+        tx = contract.functions.submitMarks(script_id, sec, marks_obtained)
         return self.send_transaction(tx, from_account)
-    
-    def submit_scrutiny(self, script_id, new_marks, reason, from_account):
-        """Submit scrutiny update"""
+
+    def return_script_for_scrutiny(self, script_id, section, suggested_marks, comment, from_account):
+        """Scrutinizer returns a script section to its examiner with suggested marks + comment."""
         contract = self.get_contract("ResultAudit")
-        
-        print(f"\n🔍 Scrutiny for {script_id}: {new_marks}")
-        print(f"   Reason: {reason}")
-        
-        tx = contract.functions.submitScrutiny(script_id, new_marks, reason)
+        sec = self._section_arg(section)
+        sec_name = config.get_section_name(sec)
+
+        print(f"\n🔁 Returning {script_id} Section {sec_name} to its examiner — suggested: {suggested_marks}")
+        print(f"   Comment: {comment}")
+
+        tx = contract.functions.returnScriptForScrutiny(
+            script_id, sec, suggested_marks, comment
+        )
         return self.send_transaction(tx, from_account)
-    
+
+    def respond_to_scrutiny(self, script_id, section, revised_marks, note, from_account):
+        """Examiner responds to scrutiny by revising their section's marks."""
+        contract = self.get_contract("ResultAudit")
+        sec = self._section_arg(section)
+        sec_name = config.get_section_name(sec)
+
+        print(f"\n✍️  Examiner revising {script_id} Section {sec_name} to: {revised_marks}")
+        print(f"   Note: {note}")
+
+        tx = contract.functions.respondToScrutiny(script_id, sec, revised_marks, note)
+        return self.send_transaction(tx, from_account)
+
+    def approve_scrutiny(self, script_id, section, from_account):
+        """Scrutinizer rechecks and approves the revised section marks."""
+        contract = self.get_contract("ResultAudit")
+        sec = self._section_arg(section)
+        sec_name = config.get_section_name(sec)
+
+        print(f"\n✅ Approving recheck for {script_id} Section {sec_name}")
+
+        tx = contract.functions.approveScrutiny(script_id, sec)
+        return self.send_transaction(tx, from_account)
+
+    def reject_scrutiny(self, script_id, section, comment, from_account):
+        """Scrutinizer rejects the revision and sends the section back again."""
+        contract = self.get_contract("ResultAudit")
+        sec = self._section_arg(section)
+        sec_name = config.get_section_name(sec)
+
+        print(f"\n❌ Rejecting {script_id} Section {sec_name} recheck — sending back again")
+        print(f"   Comment: {comment}")
+
+        tx = contract.functions.rejectScrutiny(script_id, sec, comment)
+        return self.send_transaction(tx, from_account)
+
     def finalize_results(self, exam_id, from_account):
         """Finalize exam results"""
         contract = self.get_contract("ResultAudit")
@@ -352,16 +408,32 @@ class ResultAuditInterface(BlockchainInterface):
         return self.send_transaction(tx, from_account)
     
     def get_marks(self, script_id):
-        """Get marks for a script"""
+        """Get combined marks for a script (A + B out of 100)"""
         contract = self.get_contract("ResultAudit")
         marks = contract.functions.getMarks(script_id).call()
         
         print(f"\n📈 Marks for {script_id}:")
-        print(f"   Obtained: {marks[0]}/{marks[1]}")
+        print(f"   Obtained: {marks[0]}/{marks[1]}  (Section A + Section B)")
         print(f"   Status: {config.get_grade_status_name(marks[2])}")
         
         return marks
-    
+
+    def get_section_progress(self, script_id, from_account):
+        """Get per-section progress (admin only on-chain)."""
+        contract = self.get_contract("ResultAudit")
+        progress = contract.functions.getSectionProgress(script_id).call(
+            {"from": from_account}
+        )
+        # returns (aSubmitted, aMarks, aStatus, bSubmitted, bMarks, bStatus)
+        print(f"\n📋 Section progress for {script_id}:")
+        for label, submitted, marks, status in (
+            ("A", progress[0], progress[1], progress[2]),
+            ("B", progress[3], progress[4], progress[5]),
+        ):
+            state = "—" if not submitted else f"{marks}/50 ({config.get_section_status_name(status)})"
+            print(f"   Section {label}: {state}")
+        return progress
+
     def get_audit_trail(self, script_id, from_account):
         """Get complete audit trail"""
         contract = self.get_contract("ResultAudit")
@@ -369,7 +441,9 @@ class ResultAuditInterface(BlockchainInterface):
         
         print(f"\n📜 Audit trail for {script_id}:")
         for i, entry in enumerate(trail):
-            print(f"   [{i+1}] {entry[6]}: {entry[1]} → {entry[2]}")
+            # AuditEntry fields:
+            # [0]=oldMarks [1]=newMarks [2]=timestamp [3]=changedBy [4]=reason [5]=changeType
+            print(f"   [{i+1}] {entry[5]}: {entry[0]} → {entry[1]}")
             print(f"       Reason: {entry[4]}")
         
         return trail

@@ -36,7 +36,7 @@ def round_marks(val, cap=50):
 def get_accounts():
     """
     Fetch live Ganache accounts for informational display only.
-    Addresses are NOT stored in mock data — run_workflow_demo.py
+    Addresses are NOT stored in mock data — workflow.py
     resolves them fresh at runtime via account_index.
     """
     try:
@@ -116,7 +116,7 @@ def build_people(data, accounts):
     total_needed = 1 + len(fac_account_idx) + len(data["students"])
 
     # Build examiner objects — address is INTENTIONALLY empty.
-    # run_workflow_demo.py resolves addresses fresh from Ganache at runtime
+    # workflow.py resolves addresses fresh from Ganache at runtime
     # using account_index, so the workflow always works on any fresh Ganache start.
     examiners = []
     for fid in examiner_fids:
@@ -125,7 +125,7 @@ def build_people(data, accounts):
             "name":          fac_map.get(fid, fid),
             "faculty_id":    fid,
             "account_index": ai,
-            "address":       "",   # resolved at runtime by run_workflow_demo.py
+            "address":       "",   # resolved at runtime by workflow.py
         })
 
     # Build scrutinizer objects
@@ -360,7 +360,7 @@ def build_config_snapshot(examiners, scrutinizers, students,
                            account_layout, exams,
                            exam_examiners, exam_scrutinizers, exam_students):
     """
-    Build parikkhchain_config.json so run_workflow_demo.py
+    Build parikkhchain_config.json so workflow.py
     can read per-exam examiner/scrutinizer assignments directly.
     """
     ex_idx_map  = {e["faculty_id"]: i for i, e in enumerate(examiners)}
@@ -517,7 +517,7 @@ def main():
     print(f"\n  ✅ Saved: {OUTPUT_FILE}")
     print(f"\n  Next steps:")
     print(f"    1. python scripts/deploy_contracts.py")
-    print(f"    2. python scripts/run_workflow_demo.py")
+    print(f"    2. python scripts/workflow.py")
 
 
 if __name__ == "__main__":

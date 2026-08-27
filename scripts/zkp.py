@@ -12,7 +12,7 @@ PHASES:
   4. VERIFY   — Third party checks eligibility → sees only true/false.
 
 RUN:
-  python scripts/zkp_demo.py
+  python scripts/zkp.py
 """
 
 import sys
@@ -98,9 +98,11 @@ def connect():
             raise ValueError(
                 f"'{name}' address not found in deployed_addresses.json.\n"
                 f"   Deploy ZKPCommitment.sol in Remix and add its address.")
+        # ABI file for ZKPCommitment.sol is saved as abi/zkp.json
+        abi_name = "zkp" if name == "ZKPCommitment" else name
         return w3.eth.contract(
             address=w3.to_checksum_address(addr),
-            abi=config.load_abi(name)
+            abi=config.load_abi(abi_name)
         )
 
     return w3, {

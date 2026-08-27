@@ -21,7 +21,7 @@ CONFIG_FILE  = PROJECT_ROOT / "parikkhchain_config.json"
 def load_setup_config():
     if not CONFIG_FILE.exists():
         print("⚠️  parikkhchain_config.json not found.")
-        print("   Run: python scripts/setup_config.py first.")
+        print("   Run: python scripts/convert_mock_data.py first.")
         return None
     with open(CONFIG_FILE) as f:
         return json.load(f)
@@ -78,13 +78,16 @@ def main():
     print(f"   2. ExamLifecycle.sol     — constructor arg: RBAC address")
     print(f"   3. HashRegistry.sol      — constructor args: RBAC, ExamLifecycle")
     print(f"   4. ResultAudit.sol       — constructor args: RBAC, ExamLifecycle, HashRegistry")
+    print(f"   5. Rescrutiny.sol        — constructor args: RBAC, ExamLifecycle, HashRegistry, ResultAudit")
+    print(f"   (this script then auto-links: RBAC.setResultAudit(ResultAudit),")
+    print(f"                                RBAC.setRescrutiny(Rescrutiny))")
 
-    input(f"\nPress Enter when all 4 contracts are deployed in Remix...\n")
+    input(f"\nPress Enter when all 5 contracts are deployed in Remix...\n")
 
     # ── Collect addresses ─────────────────────────────────────────────────
     print(f"Paste each deployed contract address (from Remix):\n")
 
-    contract_names = ["RBAC", "ExamLifecycle", "HashRegistry", "ResultAudit"]
+    contract_names = ["RBAC", "ExamLifecycle", "HashRegistry", "ResultAudit", "Rescrutiny"]
     addresses      = {}
 
     for name in contract_names:
@@ -104,6 +107,46 @@ def main():
 
     config.save_addresses_to_file()
     print(f"\n💾 Addresses saved to deployed_addresses.json")
+
+    # ── Link ResultAudit into RBAC (required for anonymous assignment checks) ──
+    # ResultAudit must be whitelisted so it can verify "who is the examiner of
+    # which section" without making assignments public.
+    print(f"\n🔗 Linking ResultAudit into RBAC (anonymity whitelist)...")
+    try:
+        rbac_ctr = blockchain.get_contract("RBAC")
+        linked = rbac_ctr.functions.getResultAuditAddress().call()
+        if linked and linked.lower() == addresses["ResultAudit"].lower():
+            print(f"   ✅ Already linked: {linked}")
+        else:
+            tx = rbac_ctr.functions.setResultAudit(
+                addresses["ResultAudit"]
+            ).transact({"from": accounts[0]})
+            blockchain.web3.eth.wait_for_transaction_receipt(tx)
+            linked = rbac_ctr.functions.getResultAuditAddress().call()
+            print(f"   ✅ ResultAudit whitelisted in RBAC: {linked}")
+    except Exception as e:
+        print(f"   ❌ Failed to link ResultAudit into RBAC: {e}")
+        print(f"      Run afterwards: RBAC.setResultAudit(<ResultAudit address>) from admin")
+
+    # ── Link Rescrutiny into RBAC ─────────────────────────────────────────
+    # Rescrutiny must be whitelisted so ResultAudit.updateMarksAfterRescrutiny
+    # accepts it as the only caller allowed to rewrite marks after revision.
+    print(f"\n🔗 Linking Rescrutiny into RBAC (rescrutiny whitelist)...")
+    try:
+        rbac_ctr = blockchain.get_contract("RBAC")
+        linked = rbac_ctr.functions.getRescrutinyAddress().call()
+        if linked and linked.lower() == addresses["Rescrutiny"].lower():
+            print(f"   ✅ Already linked: {linked}")
+        else:
+            tx = rbac_ctr.functions.setRescrutiny(
+                addresses["Rescrutiny"]
+            ).transact({"from": accounts[0]})
+            blockchain.web3.eth.wait_for_transaction_receipt(tx)
+            linked = rbac_ctr.functions.getRescrutinyAddress().call()
+            print(f"   ✅ Rescrutiny whitelisted in RBAC: {linked}")
+    except Exception as e:
+        print(f"   ❌ Failed to link Rescrutiny into RBAC: {e}")
+        print(f"      Run afterwards: RBAC.setRescrutiny(<Rescrutiny address>) from admin")
 
     # ── Test connectivity ─────────────────────────────────────────────────
     print(f"\n🧪 Testing contract connectivity...")
@@ -152,8 +195,8 @@ def main():
             print(f"      Scrutinizers: {', '.join(sc_names) or 'none'}")
 
     print(f"\n📋 Next steps:")
-    print(f"   python scripts/generate_mock_data.py")
-    print(f"   python scripts/run_workflow_demo.py\n")
+    print(f"   python scripts/convert_mock_data.py")
+    print(f"   python scripts/workflow.py\n")
 
 
 if __name__ == "__main__":

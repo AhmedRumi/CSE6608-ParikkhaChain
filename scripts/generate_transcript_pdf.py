@@ -173,10 +173,10 @@ def generate_transcript_pdf(student_info, courses, output_path):
     # ── Course results table ──────────────────────────────────────────────
     story.append(Paragraph("COURSE-WISE RESULTS", styles["section_head"]))
 
-    col_heads = ["Course Code", "Course Name", "Ex1/50", "Ex2/50",
+    col_heads = ["Course Code", "Course Name",
                  "Total/100", "Grade", "GP", "Status", "Scrutiny"]
-    col_widths = [W*0.10, W*0.28, W*0.07, W*0.07,
-                  W*0.09, W*0.07, W*0.06, W*0.14, W*0.08]
+    col_widths = [W*0.12, W*0.34,
+                  W*0.11, W*0.08, W*0.07, W*0.17, W*0.09]
 
     table_data = [col_heads]
     course_data_for_cgpa = []
@@ -185,8 +185,6 @@ def generate_transcript_pdf(student_info, courses, output_path):
     for c in courses:
         if c["has_marks"]:
             gi = get_grade_summary(c["marks_obtained"])
-            ex1 = str(c.get("examiner1_marks", "—"))
-            ex2 = str(c.get("examiner2_marks", "—"))
             total = str(c["marks_obtained"])
             grade = gi["letter_grade"]
             gp    = f"{gi['grade_point']:.2f}"
@@ -200,14 +198,14 @@ def generate_transcript_pdf(student_info, courses, output_path):
                 "credits": c["credits"],
             })
         else:
-            ex1 = ex2 = total = grade = gp = "—"
+            total = grade = gp = "—"
             status  = "Pending"
             scrutiny = "—"
 
         table_data.append([
             c["course_code"],
             c["exam_name"][:35],
-            ex1, ex2, total, grade, gp, status, scrutiny
+            total, grade, gp, status, scrutiny
         ])
 
     results_table = Table(table_data, colWidths=col_widths,
@@ -241,8 +239,8 @@ def generate_transcript_pdf(student_info, courses, output_path):
         if c["has_marks"]:
             gi = get_grade_summary(c["marks_obtained"])
             gc = grade_color(gi["letter_grade"])
-            ts.add("TEXTCOLOR",  (5, row_idx), (5, row_idx), gc)
-            ts.add("FONTNAME",   (5, row_idx), (5, row_idx), "Helvetica-Bold")
+            ts.add("TEXTCOLOR",  (3, row_idx), (3, row_idx), gc)
+            ts.add("FONTNAME",   (3, row_idx), (3, row_idx), "Helvetica-Bold")
 
     results_table.setStyle(ts)
     story.append(results_table)
@@ -365,11 +363,11 @@ if __name__ == "__main__":
         {"course_code": "CSE001", "exam_name": "CSE001 Final Examination",
          "marks_obtained": 49, "total_marks": 100, "credits": 3,
          "has_marks": True, "finalized": True, "has_scrutiny": False,
-         "status": "FINALIZED", "examiner1_marks": 5, "examiner2_marks": 44},
+         "status": "FINALIZED"},
         {"course_code": "CSE002", "exam_name": "CSE002 Final Examination",
          "marks_obtained": 76, "total_marks": 100, "credits": 3,
          "has_marks": True, "finalized": True, "has_scrutiny": True,
-         "status": "FINALIZED", "examiner1_marks": 40, "examiner2_marks": 36},
+         "status": "FINALIZED"},
     ]
     path = generate_from_view_result(dummy_student, dummy_courses)
     print(f"Test PDF: {path}")

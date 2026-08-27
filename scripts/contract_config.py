@@ -69,7 +69,23 @@ GRADE_STATUS = {
     "SUBMITTED": 1,
     "UNDER_SCRUTINY": 2,
     "SCRUTINIZED": 3,
-    "FINALIZED": 4
+    "APPROVED": 4,
+    "FINALIZED": 5
+}
+
+# Per-section marking status (matching ResultAudit.sol SectionStatus)
+SECTION_STATUS = {
+    "NOT_SUBMITTED": 0,
+    "SUBMITTED": 1,
+    "UNDER_SCRUTINY": 2,
+    "SCRUTINIZED": 3,
+    "APPROVED": 4
+}
+
+# Exam sections (matching RBAC.sol / ResultAudit.sol)
+SECTIONS = {
+    "A": 1,
+    "B": 2
 }
 
 
@@ -161,6 +177,22 @@ def get_exam_state_name(state_number):
 def get_grade_status_name(status_number):
     """Convert grade status number to name"""
     for name, num in GRADE_STATUS.items():
+        if num == status_number:
+            return name
+    return "UNKNOWN"
+
+
+def get_section_name(section_num):
+    """Convert section number to name (1=A, 2=B)"""
+    for name, num in SECTIONS.items():
+        if num == section_num:
+            return name
+    return "UNKNOWN"
+
+
+def get_section_status_name(status_number):
+    """Convert section status number to name"""
+    for name, num in SECTION_STATUS.items():
         if num == status_number:
             return name
     return "UNKNOWN"

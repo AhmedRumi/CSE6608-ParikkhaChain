@@ -1,0 +1,323 @@
+{
+  "testcases": [
+    {
+      "prompt": {
+        "name": "Navigate to Academic Calendar",
+        "category": "Navigation",
+        "instruction": "go to https://cse.buet.ac.bd/ and perform the following test case",
+        "description": "User navigates to the Academic Calendar page.",
+        "input": {
+          "action": "'Click on Academics', 'Click on Academic Calendar','Click on January,2025"
+        },
+        "expected": {
+          "outcome": "The Academic Calendar page is displayed.",
+          "status": "Successful"
+        }
+      }
+    },
+    {
+      "prompt": {
+        "name": "Navigate to Class Routine",
+        "category": "Navigation",
+        "instruction": "go to https://cse.buet.ac.bd/ and perform the following test case",
+        "description": "User navigates to the Class Routine page.",
+        "input": {
+          "action": "'Click on Academics', 'Click on Class Routine','Click on January,2025'"
+        },
+        "expected": {
+          "outcome": "The Class Routine page is displayed.",
+          "status": "Successful"
+        }
+      }
+    },
+    {
+      "prompt": {
+        "name": "Navigate to Undergraduate Studies",
+        "category": "Navigation",
+        "instruction": "go to https://cse.buet.ac.bd/ and perform the following test case",
+        "description": "User navigates to the Undergraduate Studies page.",
+        "input": {
+          "action": "'Click on Academics', 'Click on Undergraduate Studies','Click on B.Sc in Computer Science and Engineering'"
+        },
+        "expected": {
+          "outcome": "The Undergraduate Studies page is displayed.",
+          "status": "Successful"
+        }
+      }
+    },
+    {
+      "prompt": {
+        "name": "Navigate to Graduate Studies",
+        "category": "Navigation",
+        "instruction": "go to https://cse.buet.ac.bd/ and perform the following test case",
+        "description": "User navigates to the Graduate Studies page.",
+        "input": {
+          "action": "'Click on Academics', 'Click on Graduate Studies','Click on Graduate Research','Click 2024'"
+        },
+        "expected": {
+          "outcome": "The Graduate Studies page is displayed.",
+          "status": "Successful"
+        }
+      }
+    },
+    {
+      "prompt": {
+        "name": "Navigate to Research Areas",
+        "category": "Policy & External Links",
+        "instruction": "go to https://cse.buet.ac.bd/ and perform the following test case",
+        "description": "User navigates to the Research Areas page.",
+        "input": {
+          "action": "'Click on Research', 'Click on Research Area','Click on Dr Rifat Shahriyar','visit rifat shahriyar's github io page'"
+        },
+        "expected": {
+          "outcome": "The github page of Dr. Rifat Shahriyar is displayed.",
+          "status": "Successful"
+      }
+    }
+    },
+    {
+      "prompt": {
+        "name": "Navigate to Faculty Publications",
+        "category": "Policy & External Links",
+        "instruction": "go to https://cse.buet.ac.bd/ and perform the following test case",
+        "description": "User navigates to the Faculty Publications page.",
+        "input": {
+          "action": "'Click on Research', 'Click on Faculty ', 'Click on Dr Anindya Iqbal','Visit google scholar'"
+        },
+        "expected": {
+          "outcome": "The google scholar page of Dr. Anindya Iqbal is displayed.",
+          "status": "Successful"
+        }
+      }
+    },
+    {
+      "prompt": {
+        "name": "Navigate to Undergraduate Admissions",
+        "category": "Navigation",
+        "instruction": "go to https://cse.buet.ac.bd/ and perform the following test case",
+        "description": "User navigates to the Undergraduate Admissions page.",
+        "input": {
+          "action": "'Click on Admission', 'Click on Undergraduate'"
+        },
+        "expected": {
+          "outcome": "The Undergraduate Admissions page is displayed.",
+          "status": "Successful"
+        }
+      }
+    },
+
+    {
+      "prompt": {
+        "name": "Navigate to Head of the Department",
+        "category": "Navigation",
+        "instruction": "go to https://cse.buet.ac.bd/ and perform the following test case",
+        "description": "User navigates to the Active Faculty list.",
+        "input": {
+          "action": "'Click on Faculty & Staff', 'Click on Active Faculty','Click on Head of the Department'"
+        },
+        "expected": {
+          "outcome": "The Head of the Department's profile is displayed.",
+          "status": "Successful"
+        }
+      }
+    },
+
+    {
+      "prompt": {
+        "name": "Navigate to Officer & Staff List",
+        "category": "Navigation",
+        "instruction": "go to https://cse.buet.ac.bd/ and perform the following test case",
+        "description": "User navigates to the Officer & Staff list.",
+        "input": {
+          "action": "'Click on Faculty & Staff', 'Click on Officer & Staff', 'Click on Nazmul Haque's github page'"
+        },
+        "expected": {
+          "outcome": "The Officer & Staff list is displayed.",
+          "status": "Successful"
+        }
+      }
+    },
+    {
+      "prompt": {
+        "name": "Navigate to News Blog",
+        "category": "Navigation",
+        "instruction": "go to https://cse.buet.ac.bd/ and perform the following test case",
+        "description": "User navigates to the News Blog.",
+        "input": {
+          "action": "'Scroll down to Latest News', 'Click on Visit News Blog','Click `Learn more` on the first news'"
+        },
+        "expected": {
+          "outcome": "The News Blog is displayed.",
+          "status": "Successful"
+        }
+      }
+    },
+    {
+      "prompt": {
+        "name": "Navigate to Events Blog",
+        "category": "Navigation",
+        "instruction": "go to https://cse.buet.ac.bd/ and perform the following test case",
+        "description": "User navigates to the Events Blog.",
+        "input": {
+          "action": "'Scroll down to Events', 'Click on Visit Events Blog', 'Click `Learn more` on the first event','Go back to the previous page','Click on Add to Calendar of the first event'"
+        },
+        "expected": {
+          "outcome": "The Events Blog is displayed.",
+          "status": "Successful"
+        }
+      }
+    },
+
+    {
+      "prompt": {
+        "name": "Verify Head's Message",
+        "category": "Policy & External Links",
+        "instruction": "go to https://cse.buet.ac.bd/ and perform the following test case",
+        "description": "User verifies that the Head's message can be accessed.",
+        "input": {
+          "action": "'Go to About Us', 'Click on Read more ->'"
+        },
+        "expected": {
+          "outcome": "The Head's message is displayed.",
+          "status": "Successful"
+        }
+      }
+    },
+    {
+      "prompt": {
+        "name": "Explore the 'Others' Section and find Job Opportunities",
+        "category": "Policy & External Links",
+        "instruction": "go to https://cse.buet.ac.bd/ and perform the following test case",
+        "description": "User explores the 'Others' section and navigates to the job opportunities page.",
+        "input": {
+          "action": "'Click on Others', 'Click on Jobs@CSE', 'Click on Part time teacher recruitment'"
+        },
+        "expected": {
+          "outcome": "The user successfully finds job opportunities at CSE, BUET.",
+          "status": "Successful"
+        }
+      }
+    },
+    {
+      "prompt": {
+        "name": "Explore Postgraduate Programs and find Admission Notice",
+        "category": "Policy & External Links",
+        "instruction": "go to https://cse.buet.ac.bd/ and perform the following test case",
+        "description": "User explores the postgraduate programs and finds the latest admission notice.",
+        "input": {
+          "action": "'Click on Academics', 'Click on Graduate Studies', 'Click on courses', 'Click on `DevOps Engineering` course','Click on the 'Admission' tab', 'Click on 'PG Admission October 2024''"
+        },
+        "expected": {
+          "outcome": "The user successfully explores a postgraduate program and and lands on page with PG Admission April 2024 notice.",
+          "status": "Successful"
+        }
+      }
+    },
+    {
+      "prompt": {
+        "name": "Find Information about a Specific Research Group",
+        "category": "Information Retrieval",
+        "instruction": "go to https://cse.buet.ac.bd/ and perform the following test case",
+        "description": "User navigates to the research section and finds information about a specific research group.",
+        "input": {
+          "action": "'Click on Research', 'Click on Research Area', 'Go to specific research area, for example, 'Algorithms and theory'', 'Click on Dr Md Saidur Rahman','Click on Research','Click on `Graph Drawing Research Group`'"
+        },
+        "expected": {
+          "outcome": "The user successfully lands on the page of the `Graph Drawing Research Group`.",
+          "status": "Successful"
+        }
+      }
+    },
+    {
+      "prompt": {
+        "name": "Check for Recent News and Events",
+        "category": "Information Retrieval",
+        "instruction": "go to https://cse.buet.ac.bd/ and perform the following test case",
+        "description": "User checks for the latest news and events and navigates to a specific news article.",
+        "input": {
+          "action": "'Scroll down to Latest News', 'Click on Visit News Blog', 'Click on the first news article', 'Read the article', 'Go back to the News Blog', 'Click on Incubator', 'Download Startup Incubator Policy'"
+        },
+        "expected": {
+          "outcome": "The user successfully checks for recent news and events.",
+          "status": "Successful"
+        }
+      }
+    },
+    {
+      "prompt": {
+        "name": "Find Courses for Undergraduate Studies",
+        "category": "Information Retrieval",
+        "instruction": "go to https://cse.buet.ac.bd/ and perform the following test case",
+        "description": "User navigates to the undergraduate studies section and finds downloadable forms.",
+        "input": {
+          "action": "'Click on Academics', 'Click on Undergraduate Studies', 'CLick on courses', 'Click on Level-1 Term-1', 'Click on Level-1 Term-2', 'Click on Level-2 Term-1', 'Click on Level-2 Term-2', 'Click on Level-3 Term-1', 'Click on Level-3 Term-2', 'Click on Level-4 Term-1', 'Click on Level-4 Term-2'"
+        },
+        "expected": {
+          "outcome": "The user successfully finds courses for undergraduate studies.",
+          "status": "Successful"
+        }
+      }
+    },
+    {
+      "prompt": {
+        "name": "Navigate to Contact Page",
+        "category": "Form Interaction",
+        "instruction": "go to https://cse.buet.ac.bd/ and perform the following test case",
+        "description": "User navigates to the Contact page.",
+        "input": {
+          "action": "'Click on `Contact` on the footer','Click Visiting CSE','Enter name as `Test User`, 'Enter email as `test@gmail.com', 'Choose alumni as connection to cse','Enter brac as workplace', 'Click on Calendar icon of Start Date and Choose 29 June,2025', 'Click on Calendar icon of End Date and Choose 01 August,2025','Click on Clock icon of Start Time and Choose 10:20 AM', 'Click on Clock icon of End Time and Choose 04:20 PM'"
+        },
+        "expected": {
+          "outcome": "The form is filled out successfully.",
+          "status": "Successful"
+        }
+      }
+    },
+
+    {
+      "prompt": {
+        "name": "Check for Cisco Academy Information",
+        "category": "Policy & External Links",
+        "instruction": "go to https://cse.buet.ac.bd/ and perform the following test case",
+        "description": "User navigates to the Cisco Academy page and verifies its content.",
+        "input": {
+          "action": "'Click on Others', 'Click on Cisco Academy', 'Click on Admission', 'Click on courses', 'CLick on FAQ', 'CLick on ABout Us','Click on Cisco Login'"
+        },
+        "expected": {
+          "outcome": "The user successfully lands on login page of the Cisco Academy.",
+          "status": "Successful"
+        }
+      }
+    },
+    {
+      "prompt": {
+        "name": "Find information about the NSysS 2024 conference",
+        "category": "Policy & External Links",
+        "instruction": "go to https://cse.buet.ac.bd/ and perform the following test case",
+        "description": "User navigates to the NSysS 2024 conference page from the 'Others' section",
+        "input": {
+          "action": "'Click on Others', 'Click on NSysS 2024', 'Click on Keynote and Invited Speakers', 'Click on Call for Papers', 'Click on Important Dates', 'Click on Registration', 'Click on Venue', 'Click on Program', 'Click on Contact Details'"
+        },
+        "expected": {
+          "outcome": "The user successfully finds information about the NSysS 2024 conference.",
+          "status": "Successful"
+        }
+      }
+    },
+    {
+      "prompt": {
+        "name": "Explore the history of the CSE department",
+        "category": "Information Retrieval",
+        "instruction": "go to https://cse.buet.ac.bd/ and perform the following test case",
+        "description": "User navigates to the 'About Us' section and explores the history of the department.",
+        "input": {
+          "action": "'Go to `About Us` in footer', 'Click on History', 'Click on `Vision and Mission` in footer', 'Click on Search icon on top of the page','Select `Publication` radio button','Type secret in the search bar'"
+        },
+        "expected": {
+          "outcome": "The user successfully sees the list of publications related to the keyword `secret`.",
+          "status": "Successful"
+        }
+      }
+    }
+  ]
+}

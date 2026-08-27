@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 /**
- * @title RBAC — Multi-Role Access Control
+ * @title RBAC — Multi-Role Access Control (Anonymous Assignment Edition)
  * @notice Each address can hold multiple roles simultaneously using bitmasks.
  *         A faculty member can be both EXAMINER and SCRUTINIZER at the same time.
  *
@@ -12,7 +12,26 @@ pragma solidity ^0.8.0;
  *   SCRUTINIZER = 4  (bit 2)
  *   STUDENT     = 8  (bit 3)
  *
- * Example: address with roles = 6 (binary 0110) has EXAMINER + SCRUTINIZER
+ * ANONYMITY MODEL
+ *   • Per-exam assignments are PRIVATE. No examiner/scrutinizer can see who
+ *     else is assigned to any exam — not the other examiner, not the
+ *     scrutinizer, and vice versa.
+ *   • Assignment events carry NO addresses (only examId + section), so the
+ *     event log leaks nothing about identities.
+ *   • Identity-revealing getters (getExamExaminers / getExamScrutinizers /
+ *     isAssignedExaminer / getExaminerSection) are admin-only, plus the
+ *     whitelisted ResultAudit / Rescrutiny contracts that enforce the rules.
+ *   • A faculty member can always check their OWN assignment via the
+ *     self-check getters (getMyExamSection / isScrutinizerForExam).
+ *
+ * SECTIONS
+ *   Each exam has an admin-defined number of marking sections (1..10) with
+ *   per-section totals set in ExamLifecycle at creation. Each section is
+ *   assigned its own examiner — examiners never see other sections or other
+ *   examiners. Section numbers are validated here against 1..MAX_SECTIONS;
+ *   the actual per-exam section count is enforced by ExamLifecycle.
+ *   An examiner can NEVER be the scrutinizer of the SAME exam (can be of
+ *   another course's exam).
  */
 contract RBAC {
     address public admin;
@@ -32,32 +51,41 @@ contract RBAC {
     uint8 public constant ROLE_SCRUTINIZER = 4;
     uint8 public constant ROLE_STUDENT     = 8;
 
+    // Max marking sections per exam (1..MAX_SECTIONS). The exact per-exam
+    // section count is defined by the admin in ExamLifecycle at creation;
+    // RBAC bounds assignment checks against this maximum.
+    uint8 public constant MAX_SECTIONS = 10;
+
     // address => bitmask of roles
     mapping(address => uint8) public roleBits;
 
-    // examId => examiner address => assigned?
-    mapping(uint256 => mapping(address => bool)) public examinerAssignments;
+    // ─── PRIVATE assignment state (anonymity core) ─────────────────────────
+    // examId => section (1=A, 2=B) => assigned examiner address
+    mapping(uint256 => mapping(uint8 => address)) private examExaminers;
 
     // examId => scrutinizer address => assigned?
-    mapping(uint256 => mapping(address => bool)) public scrutinizerAssignments;
+    mapping(uint256 => mapping(address => bool)) private scrutinizerAssignments;
 
-    // examId => list of assigned examiners
-    mapping(uint256 => address[]) public examExaminers;
+    // examId => list of assigned scrutinizers (kept for admin getter)
+    mapping(uint256 => address[]) private examScrutinizers;
 
-    // examId => list of assigned scrutinizers
-    mapping(uint256 => address[]) public examScrutinizers;
+    // Whitelisted contracts allowed to verify assignments
+    address private resultAudit;
+    address private rescrutiny;
 
     constructor() {
         admin = msg.sender;
         roleBits[msg.sender] = ROLE_ADMIN;
     }
 
+    // ─── Events (address-free — never leak identities) ─────────────────────
+
     event RoleGranted(address indexed account, uint8 roleBit);
     event RoleRevoked(address indexed account, uint8 roleBit);
-    event ExaminerAssigned(address indexed examiner, uint256 indexed examId);
-    event ExaminerRevoked(address indexed examiner, uint256 indexed examId);
-    event ScrutinizerAssigned(address indexed scrutinizer, uint256 indexed examId);
-    event ScrutinizerRevoked(address indexed scrutinizer, uint256 indexed examId);
+    event ExaminerAssigned(uint256 indexed examId, uint8 section);
+    event ExaminerRevoked(uint256 indexed examId, uint8 section);
+    event ScrutinizerAssigned(uint256 indexed examId);
+    event ScrutinizerRevoked(uint256 indexed examId);
 
     // ─── Modifiers ────────────────────────────────────────────────────────
 
@@ -88,6 +116,18 @@ contract RBAC {
         require(
             roleBits[msg.sender] & ROLE_STUDENT != 0,
             "Not student"
+        );
+        _;
+    }
+
+    // Admin or the whitelisted ResultAudit / Rescrutiny contracts
+    // (cross-contract checks)
+    modifier onlyAdminOrTrusted() {
+        require(
+            roleBits[msg.sender] & ROLE_ADMIN != 0 ||
+            (resultAudit != address(0) && msg.sender == resultAudit) ||
+            (rescrutiny != address(0) && msg.sender == rescrutiny),
+            "Not authorized"
         );
         _;
     }
@@ -168,28 +208,92 @@ contract RBAC {
         return roleBits[account];
     }
 
+    // ─── Whitelist Management ──────────────────────────────────────────────
+    //
+    // ResultAudit enforces the marking rules on-chain (only the examiner of a
+    // script's section may submit, only assigned scrutinizers may return);
+    // Rescrutiny enforces the post-completion re-evaluation flow. They need
+    // access to the PRIVATE assignment state, but no other caller may read
+    // it. The admin links their addresses after deployment.
+
+    /**
+     * @notice Whitelist the ResultAudit contract for assignment checks.
+     *         Call AFTER deploying ResultAudit: setResultAudit(resultAuditAddr).
+     */
+    function setResultAudit(address resultAuditAddress) public onlyAdmin {
+        require(resultAuditAddress != address(0), "Invalid address");
+        resultAudit = resultAuditAddress;
+    }
+
+    function getResultAuditAddress() public view returns (address) {
+        return resultAudit;
+    }
+
+    /**
+     * @notice Whitelist the Rescrutiny contract (post-completion re-evaluation
+     *         flow). Call AFTER deploying Rescrutiny: setRescrutiny(addr).
+     */
+    function setRescrutiny(address rescrutinyAddress) public onlyAdmin {
+        require(rescrutinyAddress != address(0), "Invalid address");
+        rescrutiny = rescrutinyAddress;
+    }
+
+    function getRescrutinyAddress() public view returns (address) {
+        return rescrutiny;
+    }
+
+    /**
+     * @notice True if `account` is the whitelisted Rescrutiny contract
+     *         (used by ResultAudit.updateMarksAfterRescrutiny).
+     */
+    function isTrustedRescrutiny(address account) public view returns (bool) {
+        return rescrutiny != address(0) && account == rescrutiny;
+    }
+
     // ─── Exam-Specific Assignment ─────────────────────────────────────────
 
     /**
-     * @notice Assign an examiner to a specific exam.
-     *         Account must have EXAMINER or ADMIN role.
+     * @notice Assign an examiner to a specific section of a specific exam.
+     *         Sections are numbered 1..getSectionCount() per exam
+     *         (1 = first section, 2 = second, ... — EXAMINER A/B naming is
+     *         just "section 1"/"section 2" now). A section can hold only one
+     *         examiner. Emits an address-free event — nobody learns who was
+     *         assigned.
      */
-    function assignExaminerToExam(address examiner, uint256 examId)
+    function assignExaminerToExam(address examiner, uint256 examId, uint8 section)
         public
         onlyAdmin
     {
+        require(
+            section >= 1 && section <= MAX_SECTIONS,
+            "Invalid section"
+        );
         require(
             roleBits[examiner] & ROLE_EXAMINER != 0 ||
             roleBits[examiner] & ROLE_ADMIN    != 0,
             "No EXAMINER role"
         );
         require(
-            !examinerAssignments[examId][examiner],
-            "Already assigned"
+            examExaminers[examId][section] == address(0),
+            "Section already assigned"
         );
-        examinerAssignments[examId][examiner] = true;
-        examExaminers[examId].push(examiner);
-        emit ExaminerAssigned(examiner, examId);
+        // One person cannot mark two sections of the same exam
+        for (uint8 i = 1; i <= MAX_SECTIONS; i++) {
+            if (i == section) continue;
+            require(
+                examExaminers[examId][i] != examiner,
+                "Examiner already assigned to another section"
+            );
+        }
+        // An examiner can never scrutinize the SAME exam (can scrutinize
+        // other courses' exams, though)
+        require(
+            !scrutinizerAssignments[examId][examiner],
+            "Cannot be examiner and scrutinizer of the same exam"
+        );
+
+        examExaminers[examId][section] = examiner;
+        emit ExaminerAssigned(examId, section);
     }
 
     /**
@@ -211,18 +315,33 @@ contract RBAC {
             !scrutinizerAssignments[examId][scrutinizer],
             "Already assigned"
         );
+        // A scrutinizer can never be an examiner of the SAME exam (they can
+        // scrutinize another course's exam, though)
+        for (uint8 i = 1; i <= MAX_SECTIONS; i++) {
+            require(
+                examExaminers[examId][i] != scrutinizer,
+                "Cannot be examiner and scrutinizer of the same exam"
+            );
+        }
         scrutinizerAssignments[examId][scrutinizer] = true;
         examScrutinizers[examId].push(scrutinizer);
-        emit ScrutinizerAssigned(scrutinizer, examId);
+        emit ScrutinizerAssigned(examId);
     }
 
     function revokeExaminerFromExam(address examiner, uint256 examId)
         public
         onlyAdmin
     {
-        require(examinerAssignments[examId][examiner], "Not assigned");
-        examinerAssignments[examId][examiner] = false;
-        emit ExaminerRevoked(examiner, examId);
+        uint8 foundSection = 0;
+        for (uint8 i = 1; i <= MAX_SECTIONS; i++) {
+            if (examExaminers[examId][i] == examiner) {
+                foundSection = i;
+                break;
+            }
+        }
+        require(foundSection != 0, "Not assigned");
+        examExaminers[examId][foundSection] = address(0);
+        emit ExaminerRevoked(examId, foundSection);
     }
 
     function revokeScrutinizerFromExam(address scrutinizer, uint256 examId)
@@ -231,35 +350,119 @@ contract RBAC {
     {
         require(scrutinizerAssignments[examId][scrutinizer], "Not assigned");
         scrutinizerAssignments[examId][scrutinizer] = false;
-        emit ScrutinizerRevoked(scrutinizer, examId);
+
+        address[] storage list = examScrutinizers[examId];
+        for (uint256 i = 0; i < list.length; i++) {
+            if (list[i] == scrutinizer) {
+                list[i] = list[list.length - 1];
+                list.pop();
+                break;
+            }
+        }
+        emit ScrutinizerRevoked(examId);
     }
 
-    // ─── Assignment Checks (called by ResultAudit) ────────────────────────
+    // ─── Assignment Checks (called by ResultAudit / Rescrutiny) ───────────
+    //
+    // These REVEAL WHO IS ASSIGNED, so they are restricted to the admin and
+    // the whitelisted contracts. They call them with the caller's own address
+    // when enforcing marking / scrutiny / rescrutiny rules.
 
     function isAssignedExaminer(address account, uint256 examId)
-        public view returns (bool)
+        public
+        view
+        onlyAdminOrTrusted
+        returns (bool)
     {
-        if (roleBits[account] & ROLE_ADMIN != 0) return true;
-        return examinerAssignments[examId][account];
+        for (uint8 i = 1; i <= MAX_SECTIONS; i++) {
+            if (examExaminers[examId][i] == account) return true;
+        }
+        return false;
+    }
+
+    /**
+     * @notice Which section number is `examiner` assigned to for `examId`?
+     *         0 = not assigned.
+     */
+    function getExaminerSection(address examiner, uint256 examId)
+        public
+        view
+        onlyAdminOrTrusted
+        returns (uint8)
+    {
+        for (uint8 i = 1; i <= MAX_SECTIONS; i++) {
+            if (examExaminers[examId][i] == examiner) return i;
+        }
+        return 0;
     }
 
     function isAssignedScrutinizer(address account, uint256 examId)
-        public view returns (bool)
+        public
+        view
+        onlyAdminOrTrusted
+        returns (bool)
     {
-        if (roleBits[account] & ROLE_ADMIN != 0) return true;
         return scrutinizerAssignments[examId][account];
     }
 
-    // ─── Getters ──────────────────────────────────────────────────────────
+    // ─── Self-Checks (reveal only the caller's OWN assignment) ─────────────
 
-    function getExamExaminers(uint256 examId)
-        public view returns (address[] memory)
-    {
-        return examExaminers[examId];
+    /**
+     * @notice Caller's own section number for an exam: 1..getSectionCount()
+     *         or 0 (none).
+     */
+    function getMyExamSection(uint256 examId) public view returns (uint8) {
+        for (uint8 i = 1; i <= MAX_SECTIONS; i++) {
+            if (examExaminers[examId][i] == msg.sender) return i;
+        }
+        return 0;
     }
 
+    /**
+     * @notice Whether the caller is an assigned scrutinizer for an exam.
+     */
+    function isScrutinizerForExam(uint256 examId) public view returns (bool) {
+        return scrutinizerAssignments[examId][msg.sender];
+    }
+
+    // ─── Getters (admin only — reveal identities) ─────────────────────────
+
+    /**
+     * @notice Assigned examiners for an exam as a dense list paired with each
+     *         examiner's section number. ADMIN ONLY.
+     */
+    function getExamExaminers(uint256 examId)
+        public
+        view
+        onlyAdmin
+        returns (address[] memory examiners, uint8[] memory sections)
+    {
+        address[] memory tmpExaminers = new address[](MAX_SECTIONS);
+        uint8[] memory tmpSections = new uint8[](MAX_SECTIONS);
+        uint256 n = 0;
+        for (uint8 i = 1; i <= MAX_SECTIONS; i++) {
+            if (examExaminers[examId][i] != address(0)) {
+                tmpExaminers[n] = examExaminers[examId][i];
+                tmpSections[n] = i;
+                n++;
+            }
+        }
+        examiners = new address[](n);
+        sections = new uint8[](n);
+        for (uint256 i = 0; i < n; i++) {
+            examiners[i] = tmpExaminers[i];
+            sections[i] = tmpSections[i];
+        }
+    }
+
+    /**
+     * @notice Assigned scrutinizers for an exam. ADMIN ONLY.
+     */
     function getExamScrutinizers(uint256 examId)
-        public view returns (address[] memory)
+        public
+        view
+        onlyAdmin
+        returns (address[] memory)
     {
         return examScrutinizers[examId];
     }

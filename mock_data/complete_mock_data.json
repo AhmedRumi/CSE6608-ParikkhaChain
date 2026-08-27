@@ -213,8 +213,8 @@
       "passing_marks": 40,
       "semester": "Spring 2026",
       "venue": "Exam Hall A",
-      "exam_date": 1776753505,
-      "exam_date_readable": "2026-04-21 12:38:25",
+      "exam_date": 1788100718,
+      "exam_date_readable": "2026-08-30 20:38:38",
       "duration_minutes": 180
     },
     {
@@ -228,8 +228,8 @@
       "passing_marks": 40,
       "semester": "Spring 2026",
       "venue": "Exam Hall A",
-      "exam_date": 1777358305,
-      "exam_date_readable": "2026-04-28 12:38:25",
+      "exam_date": 1788705518,
+      "exam_date_readable": "2026-09-06 20:38:38",
       "duration_minutes": 180
     },
     {
@@ -243,8 +243,8 @@
       "passing_marks": 40,
       "semester": "Spring 2026",
       "venue": "Exam Hall A",
-      "exam_date": 1777963105,
-      "exam_date_readable": "2026-05-05 12:38:25",
+      "exam_date": 1789310318,
+      "exam_date_readable": "2026-09-13 20:38:38",
       "duration_minutes": 180
     },
     {
@@ -258,8 +258,8 @@
       "passing_marks": 40,
       "semester": "Spring 2026",
       "venue": "Exam Hall A",
-      "exam_date": 1778567905,
-      "exam_date_readable": "2026-05-12 12:38:25",
+      "exam_date": 1789915118,
+      "exam_date_readable": "2026-09-20 20:38:38",
       "duration_minutes": 180
     },
     {
@@ -273,8 +273,8 @@
       "passing_marks": 40,
       "semester": "Spring 2026",
       "venue": "Exam Hall A",
-      "exam_date": 1779172705,
-      "exam_date_readable": "2026-05-19 12:38:25",
+      "exam_date": 1790519918,
+      "exam_date_readable": "2026-09-27 20:38:38",
       "duration_minutes": 180
     }
   ],
@@ -2086,8 +2086,8 @@
         "passing_marks": 40,
         "semester": "Spring 2026",
         "venue": "Exam Hall A",
-        "exam_date": 1776753505,
-        "exam_date_readable": "2026-04-21 12:38:25",
+        "exam_date": 1788100718,
+        "exam_date_readable": "2026-08-30 20:38:38",
         "duration_minutes": 180
       },
       {
@@ -2101,8 +2101,8 @@
         "passing_marks": 40,
         "semester": "Spring 2026",
         "venue": "Exam Hall A",
-        "exam_date": 1777358305,
-        "exam_date_readable": "2026-04-28 12:38:25",
+        "exam_date": 1788705518,
+        "exam_date_readable": "2026-09-06 20:38:38",
         "duration_minutes": 180
       },
       {
@@ -2116,8 +2116,8 @@
         "passing_marks": 40,
         "semester": "Spring 2026",
         "venue": "Exam Hall A",
-        "exam_date": 1777963105,
-        "exam_date_readable": "2026-05-05 12:38:25",
+        "exam_date": 1789310318,
+        "exam_date_readable": "2026-09-13 20:38:38",
         "duration_minutes": 180
       },
       {
@@ -2131,8 +2131,8 @@
         "passing_marks": 40,
         "semester": "Spring 2026",
         "venue": "Exam Hall A",
-        "exam_date": 1778567905,
-        "exam_date_readable": "2026-05-12 12:38:25",
+        "exam_date": 1789915118,
+        "exam_date_readable": "2026-09-20 20:38:38",
         "duration_minutes": 180
       },
       {
@@ -2146,8 +2146,8 @@
         "passing_marks": 40,
         "semester": "Spring 2026",
         "venue": "Exam Hall A",
-        "exam_date": 1779172705,
-        "exam_date_readable": "2026-05-19 12:38:25",
+        "exam_date": 1790519918,
+        "exam_date_readable": "2026-09-27 20:38:38",
         "duration_minutes": 180
       }
     ],
@@ -2285,8 +2285,8 @@
         19
       ]
     },
-    "generated_at": "2026-03-22T12:38:25.539155"
+    "generated_at": "2026-07-31T20:38:38.286046"
   },
-  "generated_at": "2026-03-22T12:38:25.539155",
+  "generated_at": "2026-07-31T20:38:38.287212",
   "source": "converted from external_mock_data.json"
 }

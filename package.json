@@ -1,0 +1,16 @@
+{
+  "name": "parikkhachain-deploy",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Hardhat tooling for ParikkhaChain contract compilation, testing, and deployment to Ganache.",
+  "scripts": {
+    "compile": "npx hardhat --config hardhat.config.mjs compile",
+    "deploy": "npx hardhat --config hardhat.config.mjs run scripts/deploy.js --network localhost",
+    "node": "npx hardhat --config hardhat.config.mjs node"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^4.0.15",
+    "hardhat": "^3.12.0"
+  }
+}

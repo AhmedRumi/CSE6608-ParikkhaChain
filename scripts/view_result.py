@@ -37,7 +37,8 @@ GRADE_STATUS = {
     1: "SUBMITTED",
     2: "UNDER_SCRUTINY",
     3: "SCRUTINIZED",
-    4: "FINALIZED",
+    4: "APPROVED",
+    5: "FINALIZED",
 }
 
 
@@ -196,24 +197,7 @@ def fetch_full_transcript(contracts, caller_addr, student_addr):
         # Use course_code from contract return first; fall back to ExamLifecycle
         final_code = course_codes[i] if course_codes[i] and course_codes[i] != "N/A"                      else det["course_code"]
 
-        # Fetch individual examiner marks from blockchain
-        ex1_marks = ex2_marks = "—"
         sid = script_ids[i]
-        if status >= 1:   # only if marks were submitted
-            try:
-                r1 = contracts["result"].functions.getExaminer1Progress(sid).call()
-                # returns (submitted, marksGiven, examinerAddr)
-                if r1[0]:
-                    ex1_marks = r1[1]
-            except Exception:
-                pass
-            try:
-                r2 = contracts["result"].functions.getExaminer2Progress(sid).call()
-                # returns (submitted, marksGiven, examinerAddr, combinedTotal, bothSubmitted)
-                if r2[0]:
-                    ex2_marks = r2[1]
-            except Exception:
-                pass
 
         courses.append({
             "script_id":       sid,
@@ -223,11 +207,9 @@ def fetch_full_transcript(contracts, caller_addr, student_addr):
             "credits":         det["credits"],
             "marks_obtained":  marks_obtained[i],
             "total_marks":     total_marks[i],
-            "examiner1_marks": ex1_marks,
-            "examiner2_marks": ex2_marks,
             "status_int":      status,
             "status":          GRADE_STATUS.get(status, str(status)),
-            "finalized":       status == 4,
+            "finalized":       status == 5,
             "has_scrutiny":    has_scrutiny[i],
             "has_marks":       status >= 1,
         })
@@ -279,13 +261,13 @@ def fetch_audit(contracts, script_id, caller_addr):
         ).call({"from": caller_addr})
         return [
             {
-                # AuditEntry fields (scriptId removed):
-                # [0]=oldMarks [1]=newMarks [2]=changedBy [3]=reason [4]=timestamp [5]=changeType
+                # AuditEntry fields:
+                # [0]=oldMarks [1]=newMarks [2]=timestamp [3]=changedBy [4]=reason [5]=changeType
                 "old_marks":   e[0],
                 "new_marks":   e[1],
-                "changed_by":  e[2],
-                "reason":      e[3],
-                "timestamp":   datetime.fromtimestamp(e[4]).strftime("%Y-%m-%d %H:%M:%S"),
+                "timestamp":   datetime.fromtimestamp(e[2]).strftime("%Y-%m-%d %H:%M:%S"),
+                "changed_by":  e[3],
+                "reason":      e[4],
                 "change_type": e[5],
             }
             for e in trail

@@ -7,10 +7,14 @@ import "./ExamLifecycle.sol";
 contract HashRegistry {
     RBAC public rbacContract;
     ExamLifecycle public examContract;
-    
+
+    // Sections are numbered 1..getSectionCount(examId) — the count and each
+    // section's total are defined by the admin at exam creation.
+
     struct ScriptRecord {
-        string scriptId;          // Anonymous ID like "SCRIPT_001"
+        string scriptId;          // Anonymous ID like "SCRIPT_1_2_S1" (section-scoped)
         uint256 examId;           // Which exam
+        uint8 section;            // Section number of this script (1, 2, 3, ...)
         string topsheetHash;      // Hash of (name + studentId + courseCode)
         address studentAddress;   // Student wallet address (private!)
         string studentName;       // Student name (private!)
@@ -26,10 +30,9 @@ contract HashRegistry {
     mapping(string => ScriptRecord) private scripts;     // scriptId => ScriptRecord (PRIVATE!)
     mapping(uint256 => string[]) public examScripts;     // examId => scriptIds[]
     mapping(address => string[]) public studentScripts;  // student => scriptIds[]
-    mapping(string => bool) private usedHashes;          // Prevent hash collisions (PRIVATE!)
     
-    // Mapping to prevent duplicate uploads
-    mapping(uint256 => mapping(address => bool)) public hasSubmitted;
+    // Prevent duplicate uploads per exam + student + section
+    mapping(uint256 => mapping(address => mapping(uint8 => bool))) public hasSubmitted;
     
     constructor(address rbacAddress, address examAddress) {
         rbacContract = RBAC(rbacAddress);
@@ -93,8 +96,9 @@ contract HashRegistry {
     );
 }
 
-    // Generate anonymous script ID
-    function generateScriptId(uint256 examId) 
+    // Generate anonymous script ID (section-scoped: every section is a
+    // separate script; suffix carries the section number: _S1, _S2, ...)
+    function generateScriptId(uint256 examId, uint8 section) 
         internal 
         returns (string memory) 
     {
@@ -105,7 +109,9 @@ contract HashRegistry {
                 "SCRIPT_",
                 uintToString(examId),
                 "_",
-                uintToString(scriptCount)
+                uintToString(scriptCount),
+                "_S",
+                uintToString(section)
             )
         );
     }
@@ -169,15 +175,23 @@ contract HashRegistry {
     }
     
     // Main function: Register script by scanning topsheet
-    // This is what admin does when replacing topsheet with anonymous ID
+    // This is what admin does when replacing topsheet with anonymous ID.
+    // NOTE: Every section is a SEPARATE script — call this once per section
+    // with the section's own examiner in mind (1, 2, 3, ... up to the exam's
+    // section count).
     function registerScriptFromTopsheet(
         uint256 examId,
+        uint8 section,
         address studentAddress,
         string memory studentName,
         string memory studentId,
         string memory courseCode
     ) public onlyAdmin returns (string memory scriptId, string memory topsheetHash) {
-        // Validations
+        // Validations — section must exist for this exam (1..getSectionCount)
+        require(
+            section >= 1 && section <= examContract.getSectionCount(examId),
+            "Invalid section"
+        );
         require(bytes(studentName).length > 0, "Student name cannot be empty");
         require(bytes(studentId).length > 0, "Student ID cannot be empty");
         require(bytes(courseCode).length > 0, "Course code cannot be empty");
@@ -189,10 +203,10 @@ contract HashRegistry {
             "Student not enrolled in this exam"
         );
         
-        // Check if student hasn't already submitted
+        // Check if student hasn't already submitted THIS section
         require(
-            !hasSubmitted[examId][studentAddress],
-            "Student already submitted for this exam"
+            !hasSubmitted[examId][studentAddress][section],
+            "Student already submitted this section for this exam"
         );
         
         // Check exam is in correct state (ACTIVE or EVALUATION)
@@ -206,16 +220,14 @@ contract HashRegistry {
         // Generate topsheet hash from student info
         topsheetHash = generateTopsheetHash(studentName, studentId, courseCode);
         
-        // Check for hash collision (very rare, but good practice)
-        require(!usedHashes[topsheetHash], "Hash collision detected");
-        
-        // Generate anonymous script ID
-        scriptId = generateScriptId(examId);
+        // Generate anonymous script ID (unique per exam + count + section)
+        scriptId = generateScriptId(examId, section);
         
         // Create script record (stores private info on-chain but hidden from examiners)
         scripts[scriptId] = ScriptRecord({
             scriptId: scriptId,
             examId: examId,
+            section: section,
             topsheetHash: topsheetHash,
             studentAddress: studentAddress,
             studentName: studentName,
@@ -228,8 +240,7 @@ contract HashRegistry {
         // Add to tracking mappings
         examScripts[examId].push(scriptId);
         studentScripts[studentAddress].push(scriptId);
-        hasSubmitted[examId][studentAddress] = true;
-        usedHashes[topsheetHash] = true;
+        hasSubmitted[examId][studentAddress][section] = true;
         
         emit ScriptRegistered(scriptId, examId, studentAddress, topsheetHash);
         
@@ -306,13 +317,17 @@ contract HashRegistry {
         return studentScripts[student];
     }
     
-    // Check if student has submitted for an exam
+    // Check if student has submitted scripts for ALL sections of an exam
     function hasStudentSubmitted(uint256 examId, address student)
         public
         view
         returns (bool)
     {
-        return hasSubmitted[examId][student];
+        uint8 count = examContract.getSectionCount(examId);
+        for (uint8 s = 1; s <= count; s++) {
+            if (!hasSubmitted[examId][student][s]) return false;
+        }
+        return true;
     }
     
     // Get total number of scripts
@@ -343,5 +358,46 @@ contract HashRegistry {
         returns (uint256)
     {
         return scripts[scriptId].examId;
+    }
+
+    // Get the section number (1, 2, ...) a script belongs to (safe)
+    function getScriptSection(string memory scriptId)
+        public
+        view
+        scriptExists(scriptId)
+        returns (uint8)
+    {
+        return scripts[scriptId].section;
+    }
+
+    // Get scripts of ONE section for an exam (examiners see only their section)
+    function getExamSectionScripts(uint256 examId, uint8 section)
+        public
+        view
+        returns (string[] memory)
+    {
+        string[] memory all = examScripts[examId];
+        uint256 count = 0;
+        for (uint256 i = 0; i < all.length; i++) {
+            if (scripts[all[i]].section == section) count++;
+        }
+        string[] memory out = new string[](count);
+        uint256 j = 0;
+        for (uint256 i = 0; i < all.length; i++) {
+            if (scripts[all[i]].section == section) {
+                out[j] = all[i];
+                j++;
+            }
+        }
+        return out;
+    }
+
+    // Whether a student submitted a script for this exam + section
+    function hasStudentSubmitted(uint256 examId, address student, uint8 section)
+        public
+        view
+        returns (bool)
+    {
+        return hasSubmitted[examId][student][section];
     }
 }
